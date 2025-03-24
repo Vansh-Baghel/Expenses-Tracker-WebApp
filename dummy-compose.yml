@@ -1,19 +1,15 @@
 version: "3.8"
-
 services:
   mysql:
     image: mysql:latest
-    # mysql:3306/expenses_tracker => mysql is the container name in the URL, threfore use this itself.
     container_name: mysql
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: Test@123
       MYSQL_DATABASE: expenses_tracker
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./mysql-data:/var/lib/mysql
     networks:
-      - expense-tracker
+      - appbridge
     healthcheck:
       test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-pTest@123"]
       interval: 10s
@@ -22,10 +18,9 @@ services:
       start_period: 30s
     restart: always
 
-  java_app:
-    build: 
-      context: .
-    container_name: expensesapp
+  mainapp:
+    image: snehcreate/expensetracker_v3
+    container_name: Expensetracker
     environment:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/expenses_tracker?allowPublicKeyRetrieval=true&useSSL=false"
@@ -33,12 +28,13 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - expense-tracker
+      - appbridge
     depends_on:
       - mysql
-    
+    restart: always
+
 networks:
-  expense-tracker:
+  appbridge:
 
 volumes:
   mysql-data:
